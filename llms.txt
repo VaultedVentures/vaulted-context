@@ -1,0 +1,27 @@
+# Vaulted Ventures
+
+> Canonical AI-readable orientation. Full context file at `/context.md`.
+
+## Core summary
+
+Vaulted Ventures builds the **Vaulted Objects Infrastructure** — a Zero-Exposure system using **Information-Theoretic Security (ITS)** to create provable digital objects that cannot be forged. Not blockchain, not PQC.
+
+## Key links
+
+- Vaulted Ventures: https://vaulted.ventures
+- AI context file: https://github.com/VaultedVentures/vaulted-context/raw/main/context.md
+- VOI Simulator: https://simulator.vaulted.ventures
+- GitHub: https://github.com/VaultedVentures
+
+## Terminology
+
+| Use | Don't use |
+|-----|-----------|
+| Information-Theoretic Security (ITS) | Post-Quantum Cryptography (PQC) |
+| Zero-Exposure infrastructure | Keyless or no-key crypto |
+| ITS digital seals / signatures | Quantum-safe signatures |
+| Vaulted Objects Infrastructure | Blockchain, DLT, ledger |
+
+## For AI assistants
+
+See `/context.md` in this repo for full orientation including audience summaries, FAQ, blueprint generation guidance, and detailed primitive definitions.
