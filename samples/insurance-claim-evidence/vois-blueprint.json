@@ -1,0 +1,76 @@
+{
+  "format": "vois-blueprint",
+  "version": "0.1.0",
+  "name": "Insurance Claim Evidence Workflow",
+  "industry": "insurance",
+  "scenario": "Claim evidence submission, verification, sealing, and adjudication",
+  "description": "Model the lifecycle of a digital insurance claim — from policyholder submission through evidence collection, ITS sealing, authority verification, and final adjudication.",
+  "actors": [
+    { "id": "act-001", "name": "Policyholder", "type": "human", "trust_boundary": "External — claimant" },
+    { "id": "act-002", "name": "Claims Adjuster", "type": "human", "trust_boundary": "Internal — insurer" },
+    { "id": "act-003", "name": "Independent Assessor", "type": "organisation", "trust_boundary": "External — accredited" },
+    { "id": "act-004", "name": "Regulator", "type": "organisation", "trust_boundary": "External — supervisory" }
+  ],
+  "agents": [
+    { "id": "agt-001", "name": "Claims Intake Agent", "type": "ai_agent", "delegated_by": { "ref": "act-002", "entity_type": "actor" }, "capabilities": ["receive claim", "verify policy", "route to adjuster"] },
+    { "id": "agt-002", "name": "Evidence Verification Agent", "type": "ai_agent", "delegated_by": { "ref": "act-003", "entity_type": "actor" }, "capabilities": ["check seal integrity", "verify provenance chain"] },
+    { "id": "agt-003", "name": "Compliance Monitoring Agent", "type": "ai_agent", "delegated_by": { "ref": "act-004", "entity_type": "actor" }, "capabilities": ["audit claim lifecycle", "generate regulatory reports"] }
+  ],
+  "objects": [
+    { "id": "obj-001", "name": "Claim Submission", "type": "document", "is_vaulted": false, "possessed_by": [{ "ref": "act-001", "entity_type": "actor" }], "lifecycle_state": "Submitted" },
+    { "id": "obj-002", "name": "Policy Document", "type": "vaulted_object", "is_vaulted": true, "possessed_by": [{ "ref": "act-002", "entity_type": "actor" }], "lifecycle_state": "Active" },
+    { "id": "obj-003", "name": "Incident Photo", "type": "evidence", "is_vaulted": true, "possessed_by": [{ "ref": "act-001", "entity_type": "actor" }], "lifecycle_state": "Sealed" },
+    { "id": "obj-004", "name": "Assessor Report", "type": "vaulted_object", "is_vaulted": true, "possessed_by": [{ "ref": "act-003", "entity_type": "actor" }], "lifecycle_state": "Sealed" },
+    { "id": "obj-005", "name": "Adjudication Decision", "type": "vaulted_object", "is_vaulted": true, "possessed_by": [{ "ref": "act-002", "entity_type": "actor" }], "lifecycle_state": "Finalised" },
+    { "id": "obj-006", "name": "Audit Record", "type": "record", "is_vaulted": true, "possessed_by": [{ "ref": "act-004", "entity_type": "actor" }], "lifecycle_state": "Active" }
+  ],
+  "authorities": [
+    { "id": "auth-001", "name": "Insurer Authority", "type": "certifying_authority", "seal_types": ["origin_seal", "authority_seal", "attestation"], "verification_method": "Possession proof + seal chain" },
+    { "id": "auth-002", "name": "Accredited Assessor Authority", "type": "trusted_third_party", "seal_types": ["attestation", "integrity_seal"], "verification_method": "Multi-party verification" },
+    { "id": "auth-003", "name": "Industry Regulator", "type": "regulatory_body", "seal_types": ["authority_seal"], "verification_method": "Hierarchical trust chain" }
+  ],
+  "events": [
+    { "id": "evt-001", "type": "creation", "name": "Claim Submitted", "actor": { "ref": "act-001", "entity_type": "actor" }, "object": { "ref": "obj-001", "entity_type": "object" }, "evidence": [] },
+    { "id": "evt-002", "type": "verification", "name": "Policy Check", "actor": { "ref": "agt-001", "entity_type": "agent" }, "object": { "ref": "obj-002", "entity_type": "object" }, "authority": { "ref": "auth-001", "entity_type": "authority" }, "evidence": [{ "ref": "prf-001", "entity_type": "proof" }] },
+    { "id": "evt-003", "type": "sealing", "name": "Incident Photo Attested", "actor": { "ref": "act-001", "entity_type": "actor" }, "object": { "ref": "obj-003", "entity_type": "object" }, "authority": { "ref": "auth-001", "entity_type": "authority" }, "evidence": [{ "ref": "prf-002", "entity_type": "proof" }] },
+    { "id": "evt-004", "type": "sealing", "name": "Assessor Report Sealed", "actor": { "ref": "act-003", "entity_type": "actor" }, "object": { "ref": "obj-004", "entity_type": "object" }, "authority": { "ref": "auth-002", "entity_type": "authority" }, "evidence": [{ "ref": "prf-003", "entity_type": "proof" }] },
+    { "id": "evt-005", "type": "verification", "name": "Evidence Chain Verified", "actor": { "ref": "agt-002", "entity_type": "agent" }, "object": { "ref": "obj-004", "entity_type": "object" }, "authority": { "ref": "auth-002", "entity_type": "authority" }, "evidence": [{ "ref": "prf-004", "entity_type": "proof" }] },
+    { "id": "evt-006", "type": "sealing", "name": "Adjudication Sealed", "actor": { "ref": "act-002", "entity_type": "actor" }, "object": { "ref": "obj-005", "entity_type": "object" }, "authority": { "ref": "auth-001", "entity_type": "authority" }, "evidence": [{ "ref": "prf-005", "entity_type": "proof" }] },
+    { "id": "evt-007", "type": "audit", "name": "Regulatory Audit", "actor": { "ref": "agt-003", "entity_type": "agent" }, "object": { "ref": "obj-006", "entity_type": "object" }, "authority": { "ref": "auth-003", "entity_type": "authority" }, "evidence": [{ "ref": "prf-006", "entity_type": "proof" }] }
+  ],
+  "controls": [
+    { "id": "ctl-001", "name": "Policy Valid Before Processing", "type": "verification_check", "controlled_by": { "ref": "auth-001", "entity_type": "authority" }, "governance_rules": ["Claim must match active policy"] },
+    { "id": "ctl-002", "name": "Evidence Must Be Sealed", "type": "seal_requirement", "controlled_by": { "ref": "auth-001", "entity_type": "authority" }, "governance_rules": ["All evidence must carry origin seal"] },
+    { "id": "ctl-003", "name": "Assessor Must Be Accredited", "type": "approval_gate", "controlled_by": { "ref": "auth-002", "entity_type": "authority" }, "governance_rules": ["Only accredited assessors seal reports"] },
+    { "id": "ctl-004", "name": "Adjudication Requires Verification", "type": "verification_check", "controlled_by": { "ref": "auth-001", "entity_type": "authority" }, "governance_rules": ["Verify all evidence chains before seal"] },
+    { "id": "ctl-005", "name": "Mandatory Regulatory Copy", "type": "policy_enforcement", "controlled_by": { "ref": "auth-003", "entity_type": "authority" }, "governance_rules": ["Audit record must be generated per claim"] }
+  ],
+  "proofs": [
+    { "id": "prf-001", "type": "verification_record", "name": "Policy Verification Proof", "produced_by": { "ref": "evt-002", "entity_type": "event" }, "consumed_by": { "ref": "evt-005", "entity_type": "event" } },
+    { "id": "prf-002", "type": "digital_seal", "name": "Photo Origin Seal", "produced_by": { "ref": "evt-003", "entity_type": "event" }, "consumed_by": { "ref": "evt-005", "entity_type": "event" } },
+    { "id": "prf-003", "type": "its_signature", "name": "Assessor Report ITS Signature", "produced_by": { "ref": "evt-004", "entity_type": "event" }, "consumed_by": { "ref": "evt-005", "entity_type": "event" } },
+    { "id": "prf-004", "type": "verification_record", "name": "Evidence Chain Verification", "produced_by": { "ref": "evt-005", "entity_type": "event" }, "consumed_by": { "ref": "evt-006", "entity_type": "event" } },
+    { "id": "prf-005", "type": "digital_seal", "name": "Adjudication Seal", "produced_by": { "ref": "evt-006", "entity_type": "event" } },
+    { "id": "prf-006", "type": "audit_log", "name": "Compliance Audit Record", "produced_by": { "ref": "evt-007", "entity_type": "event" } }
+  ],
+  "risks": [
+    { "id": "risk-001", "name": "Forged photo submission", "severity": "high", "affected_entities": [{ "ref": "obj-003", "entity_type": "object" }, { "ref": "evt-003", "entity_type": "event" }], "mitigation": "Origin seal at capture time with tamper-evident metadata" },
+    { "id": "risk-002", "name": "Unaccredited assessor seals report", "severity": "critical", "affected_entities": [{ "ref": "act-003", "entity_type": "actor" }, { "ref": "obj-004", "entity_type": "object" }], "mitigation": "Accreditation gate blocks unverified assessors" },
+    { "id": "risk-003", "name": "Seal chain verification failure", "severity": "high", "affected_entities": [{ "ref": "evt-005", "entity_type": "event" }], "mitigation": "Evidence Verifier produces detailed failure report for manual review" },
+    { "id": "risk-004", "name": "Expired policy processed", "severity": "high", "affected_entities": [{ "ref": "obj-002", "entity_type": "object" }], "mitigation": "Policy check runs at submission + peak adjudication time" }
+  ],
+  "exports": [
+    { "format": "mermaid", "description": "Embedded flowchart in blueprint Markdown", "mapping_status": "complete" },
+    { "format": "bpmn-2.0", "description": "Swimlanes per trust boundary, lanes per actor", "mapping_status": "not_started" },
+    { "format": "json-ld", "description": "Semantic context for Vaulted Objects primitives", "mapping_status": "not_started" },
+    { "format": "oscal", "description": "Control mappings for regulated compliance", "mapping_status": "not_started" },
+    { "format": "w3c-prov", "description": "Entity → Activity → Agent mapping", "mapping_status": "not_started" },
+    { "format": "c4", "description": "System context + container views", "mapping_status": "not_started" }
+  ],
+  "openQuestions": [
+    { "id": "oq-001", "question": "Should photo sealing happen client-side or server-side?", "context": "Impacts trust model for mobile claims", "status": "open" },
+    { "id": "oq-002", "question": "How does the regulator verify without holding the keys?", "context": "Zero-Exposure verification model", "status": "resolved", "resolution": "Possession proof protocol" },
+    { "id": "oq-003", "question": "What happens when an assessor authority is revoked?", "context": "Accreditation gate needs revocation list", "status": "open" },
+    { "id": "oq-004", "question": "Should the blueprint include subrogation (insurer vs insurer)?", "context": "Extends model to multi-party recovery", "status": "deferred" }
+  ]
+}
